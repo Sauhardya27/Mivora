@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./components/Providers";
+import Navbar from "./components/Navbar";
 
 export const metadata: Metadata = {
-  title: "Video with AI - Advanced Video Processing",
-  description: "Create, edit, and enhance videos with the power of AI",
+  title: "Mivora",
+  description: "Create, edit, and enhance images & videos with the power of AI",
 };
 
 export default function RootLayout({
@@ -21,7 +22,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen bg-neutral-900 text-gray-100 transition-colors duration-300">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
