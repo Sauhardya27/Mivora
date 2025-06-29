@@ -45,7 +45,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative overflow-hidden mt-16">
+    <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative mt-10 lg:mt-0 overflow-hidden">
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-200/30 via-blue-200/20 to-cyan-200/25 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-200/20 via-orange-200/15 to-red-200/20 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -60,13 +60,7 @@ const LoginPage = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="relative inline-block">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-              Welcome Back
-            </h1>
-            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full" />
-          </div>
+        <div className="text-center mb-4">
           <p className="text-gray-600 dark:text-gray-400 mt-4">
             Sign in to continue your creative journey
           </p>
@@ -141,7 +135,7 @@ const LoginPage = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+          <form onSubmit={handleSubmit} className="space-y-3 -my-4 relative z-10">
             <div className="space-y-2">
               <label
                 htmlFor="email"
@@ -237,9 +231,9 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading || isGoogleLoading}
-              className="w-full relative group overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 p-0.5 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 transform"
+              className="w-full mb-2 relative group overflow-hidden rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 p-0.5 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 transform"
             >
-              <div className="relative rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-6 py-3 text-white font-semibold transition-all duration-200 group-hover:from-purple-700 group-hover:via-blue-700 group-hover:to-cyan-700">
+              <div className="relative rounded-xl bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 px-6 py-3 text-white font-semibold transition-all duration-200 group-hover:from-purple-700 group-hover:via-blue-700 group-hover:to-cyan-700 mb2">
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <svg
@@ -320,7 +314,7 @@ const LoginPage = () => {
           </button>
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-4 lg:-mb-10">
           <div className="flex items-center justify-center space-x-2 text-sm text-amber-700 dark:text-amber-400">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path

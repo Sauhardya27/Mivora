@@ -2,10 +2,31 @@
 import React, { useRef, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../lib/utils";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
+
+  const router = useRouter();
+  const { status } = useSession();
+
+  const handleExplore = () => {
+    if (status === "authenticated") {
+      router.push("/dashboard");
+    } else {
+      router.push("/login");
+    }
+  };
+
+  const handleCreate = () => {
+    if (status === "authenticated") {
+      router.push("/upload");
+    } else {
+      router.push("/login");
+    }
+  };
 
   return (
     <div
@@ -54,16 +75,16 @@ export default function Hero() {
         }}
       />
 
-      <h1 className="text-balance relative z-50 mx-auto mb-4 max-w-5xl text-center text-3xl font-semibold tracking-tight text-gray-900 dark:text-neutral-100 md:text-7xl">
+      <h1 className="text-balance relative z-50 mx-auto mb-4 max-w-5xl text-center text-2xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold tracking-tight text-gray-900 dark:text-neutral-100 leading-tight">
         <span className="block">
           Create, edit, and enhance{" "}
-          <span className="inline-flex gap-1">
+          <span className="inline-flex gap-1 flex-wrap justify-center">
             <span className="relative inline-block w-max [filter:drop-shadow(0px_1px_3px_rgba(27,_37,_80,_0.14))]">
               <span className="bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 bg-clip-text text-transparent [text-shadow:0_0_rgba(0,0,0,0.1)]">
                 images
               </span>
             </span>
-            <span className="mx-2">&</span>
+            <span className="mx-1 sm:mx-2">&</span>
             <span className="relative inline-block w-max [filter:drop-shadow(0px_1px_3px_rgba(27,_37,_80,_0.14))]">
               <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent [text-shadow:0_0_rgba(0,0,0,0.1)]">
                 videos
@@ -72,7 +93,7 @@ export default function Hero() {
           </span>
         </span>
 
-        <span className="block mt-2">
+        <span className="block mt-1 sm:mt-2">
           with the power of{" "}
           <span className="relative inline-block w-max [filter:drop-shadow(0px_1px_3px_rgba(27,_37,_80,_0.14))]">
             <span className="bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent [text-shadow:0_0_rgba(0,0,0,0.1)]">
@@ -82,35 +103,42 @@ export default function Hero() {
         </span>
       </h1>
 
-      <p className="relative z-50 mx-auto mt-6 max-w-2xl px-4 text-center text-base/7 text-gray-700 dark:text-gray-200">
-        Transform your images and videos with cutting-edge AI technology. Upload, process,
-        and enhance your content with advanced video processing capabilities.
+      <p className="relative z-50 mx-auto mt-4 sm:mt-6 max-w-2xl px-4 text-center text-sm sm:text-base leading-6 sm:leading-7 text-gray-700 dark:text-gray-200">
+        Transform your images and videos with cutting-edge AI technology.
+        Upload, process, and enhance your content with advanced video processing
+        capabilities.
       </p>
 
-      <div className="relative z-50 mx-auto my-4 px-4">
+      <div className="relative z-50 mx-auto my-3 sm:my-4 px-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="flex items-center justify-center space-x-2 text-sm text-amber-700 dark:text-amber-400"
+          className="flex items-center justify-center space-x-2 text-xs sm:text-sm text-amber-700 dark:text-amber-400"
         >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <svg
+            className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
             <path
               fillRule="evenodd"
               d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
               clipRule="evenodd"
             />
           </svg>
-          <span className="font-medium">
+          <span className="font-medium text-center">
             ✨ Login required to unlock the magic of Mivora
           </span>
         </motion.div>
       </div>
 
-      <div className="mt-4 flex w-full flex-col items-center justify-center gap-8 px-8 sm:flex-row">
-        <button className="group relative z-20 flex h-12 w-full cursor-pointer items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 p-px px-6 py-3 text-center text-sm font-semibold leading-6 text-white no-underline transition duration-200 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 sm:w-60">
+      <div className="mt-4 flex w-full flex-col items-center justify-center gap-3 sm:gap-4 md:gap-8 px-4 sm:px-8 sm:flex-row max-w-md sm:max-w-none -mb-10">
+        <button 
+          onClick={handleExplore}
+          className="group relative z-20 flex h-11 sm:h-12 w-full cursor-pointer items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 p-px px-4 sm:px-6 py-3 text-center text-sm font-semibold leading-6 text-white no-underline transition duration-200 hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 sm:w-60">
           <svg
-            className="w-6 h-6 mr-2"
+            className="w-5 h-5 sm:w-6 sm:h-6 mr-1 sm:mr-2 flex-shrink-0"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -129,11 +157,13 @@ export default function Hero() {
               strokeWidth="2"
             />
           </svg>
-          Explore Videos
+          <span>Explore Videos</span>
         </button>
-        <button className="group relative z-20 flex h-12 w-full sm:w-60 cursor-pointer items-center justify-center gap-2 truncate rounded-lg bg-white border-2 border-gray-300 px-4 text-sm font-semibold text-gray-800 no-underline shadow-lg transition duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:border-purple-400 dark:bg-neutral-800 dark:text-white dark:border-neutral-600 dark:hover:border-purple-400">
+        <button 
+          onClick={handleCreate}
+          className="group relative z-20 flex h-11 sm:h-12 w-full sm:w-60 cursor-pointer items-center justify-center gap-2 truncate rounded-lg bg-white border-2 border-gray-300 px-3 sm:px-4 text-sm font-semibold text-gray-800 no-underline shadow-lg transition duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:border-purple-400 dark:bg-neutral-800 dark:text-white dark:border-neutral-600 dark:hover:border-purple-400">
           <svg
-            className="w-5 h-5 shrink-0"
+            className="w-4 h-4 sm:w-5 sm:h-5 shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

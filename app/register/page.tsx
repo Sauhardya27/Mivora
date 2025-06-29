@@ -79,7 +79,7 @@ function RegisterPage() {
     const passwordStrength = getPasswordStrength(password);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative overflow-hidden mt-16">
+        <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative overflow-hidden mt-10">
             <div className="pointer-events-none absolute inset-0 z-0">
                 <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-gradient-to-r from-cyan-200/30 via-blue-200/20 to-purple-200/25 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-gradient-to-r from-orange-200/20 via-pink-200/15 to-red-200/20 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -92,13 +92,7 @@ function RegisterPage() {
             </div>
 
             <div className="relative z-10 w-full max-w-md">
-                <div className="text-center mb-8">
-                    <div className="relative inline-block">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                            Join Us Today
-                        </h1>
-                        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-cyan-600 to-purple-600 rounded-full" />
-                    </div>
+                <div className="text-center mb-4">
                     <p className="text-gray-600 dark:text-gray-400 mt-4">
                         Create your account and start your creative journey
                     </p>
