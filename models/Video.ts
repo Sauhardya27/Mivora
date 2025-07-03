@@ -1,4 +1,3 @@
-import { time } from "console";
 import mongoose, { Schema, model, models } from "mongoose";
 
 export const VIDEO_DIMENSIONS = {
@@ -12,6 +11,7 @@ export interface IVideo {
     description: string;
     videoUrl: string;
     thumbnailUrl: string;
+    duration: number;
     controls?: boolean;
     transformations?: {
         width: number;
@@ -26,6 +26,7 @@ const VideoSchema = new Schema<IVideo>(
         description: { type: String, required: true },
         videoUrl: { type: String, required: true },
         thumbnailUrl: { type: String, required: true },
+        duration: { type: Number, required: true },
         controls: { type: Boolean, default: true },
         transformations: {
             width: { type: Number, default: VIDEO_DIMENSIONS.width },

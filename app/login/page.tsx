@@ -2,15 +2,26 @@
 import NextAuth from "next-auth";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [themeResolved, setThemeResolved] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const timer = setTimeout(() => {
+      setThemeResolved(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,8 +55,18 @@ const LoginPage = () => {
     }
   };
 
+  if (!mounted || !themeResolved) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-neutral-900 transition-colors duration-300">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative mt-10 lg:mt-0 overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-neutral-900 flex items-center justify-center px-4 py-8 relative mt-10 lg:mt-0 overflow-hidden transition-colors duration-300">
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-gradient-to-r from-purple-200/30 via-blue-200/20 to-cyan-200/25 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-200/20 via-orange-200/15 to-red-200/20 rounded-full blur-3xl animate-pulse delay-1000" />

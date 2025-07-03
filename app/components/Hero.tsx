@@ -8,9 +8,21 @@ import { useSession } from "next-auth/react";
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
+  
+  const [mounted, setMounted] = useState(false);
+  const [themeResolved, setThemeResolved] = useState(false);
 
   const router = useRouter();
   const { status } = useSession();
+
+  useEffect(() => {
+    setMounted(true);
+    
+    const timer = setTimeout(() => {
+      setThemeResolved(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleExplore = () => {
     if (status === "authenticated") {
@@ -28,10 +40,20 @@ export default function Hero() {
     }
   };
 
+  if (!mounted || !themeResolved) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-neutral-900 transition-colors duration-300">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={parentRef}
-      className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-8 md:px-8 md:py-12 bg-white dark:bg-neutral-900"
+      className="relative flex h-screen flex-col items-center justify-center overflow-hidden px-4 py-8 md:px-8 md:py-12 bg-white dark:bg-neutral-900 transition-colors duration-300"
     >
       <BackgroundGrids />
       <CollisionMechanism
@@ -178,6 +200,8 @@ export default function Hero() {
           <span className="truncate">Create Your Own Video</span>
         </button>
       </div>
+
+      <div ref={containerRef} className="absolute bottom-0 left-0 right-0 h-1 z-10" />
     </div>
   );
 }
