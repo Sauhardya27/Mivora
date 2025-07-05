@@ -1,16 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import {
-  User,
-  Moon,
-  Sun,
-  Video,
-  Upload,
-  LogOut,
-  LogIn,
-  Sparkles,
-} from "lucide-react";
+import { User, Moon, Sun, Video, Upload, LogOut, LogIn, Sparkles } from "lucide-react";
 import { useNotification } from "./Notification";
 import { useState, useEffect } from "react";
 
@@ -137,7 +128,17 @@ export default function Navbar() {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
                 <div className="relative">
-                  <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                  {session?.user?.image ? (
+                    <div className="w-6 h-6 rounded-full overflow-hidden">
+                      <img
+                        src={session.user.image}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <User className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                  )}
                   {session && (
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-neutral-900 animate-pulse"></div>
                   )}
@@ -154,16 +155,26 @@ export default function Navbar() {
                     <li className="px-4 py-3">
                       <div className="flex items-center space-x-3">
                         <div className="avatar placeholder">
-                          <div className="bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-full w-10">
-                            <span className="text-sm font-bold">
-                              {session.user?.email?.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
+                          {session.user?.image ? (
+                            <div className="w-10 h-10 rounded-full overflow-hidden">
+                              <img
+                                src={session.user.image}
+                                alt="Profile"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-full w-10">
+                              <span className="text-sm font-bold">
+                                {session.user?.email?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="max-w-[180px] break-words whitespace-normal">
                           <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                            {session.user?.email &&
-                              extractFirstName(session.user.email)}
+                            {session.user?.name || 
+                              (session.user?.email && extractFirstName(session.user.email))}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {session.user?.email}

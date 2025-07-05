@@ -10,6 +10,7 @@ export interface IImage {
   title: string;
   description: string;
   imageUrl: string;
+  userEmail: string;
   alt?: string;
   format?: "jpg" | "png" | "webp" | "avif";
   transformations?: {
@@ -19,6 +20,8 @@ export interface IImage {
     fit?: "cover" | "contain" | "fill";
     quality?: number;
   };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const ImageSchema = new Schema<IImage>(
@@ -26,6 +29,7 @@ const ImageSchema = new Schema<IImage>(
     title: { type: String, required: true },
     description: { type: String, required: true },
     imageUrl: { type: String, required: true },
+    userEmail: { type: String, required: true },
     alt: { type: String, default: "" },
     format: {
       type: String,
@@ -48,6 +52,8 @@ const ImageSchema = new Schema<IImage>(
     timestamps: true,
   }
 );
+
+ImageSchema.index({ userEmail: 1, createdAt: -1 });
 
 const Image = models?.Image || model<IImage>("Image", ImageSchema);
 

@@ -1,11 +1,11 @@
 import React from 'react'
 
-const page = () => {
+const VideoUpload = () => {
   return (
     <div>
-      Upload Page
+      
     </div>
   )
 }
 
-export default page
+export default VideoUpload
