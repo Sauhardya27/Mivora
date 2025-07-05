@@ -1,44 +1,48 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 export const VIDEO_DIMENSIONS = {
-    width: 1080,
-    height: 1920
+  width: 1080,
+  height: 1920,
 } as const;
 
 export interface IVideo {
-    _id?: mongoose.Types.ObjectId;
-    title: string;
-    description: string;
-    videoUrl: string;
-    thumbnailUrl: string;
-    duration: number;
-    controls?: boolean;
-    transformations?: {
-        width: number;
-        height: number;
-        quality?: number;
-    };
+  _id?: mongoose.Types.ObjectId;
+  title: string;
+  description: string;
+  userEmail: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  duration: number;
+  controls?: boolean;
+  transformations?: {
+    width: number;
+    height: number;
+    quality?: number;
+  };
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const VideoSchema = new Schema<IVideo>(
-    {
-        title: { type: String, required: true },
-        description: { type: String, required: true },
-        videoUrl: { type: String, required: true },
-        thumbnailUrl: { type: String, required: true },
-        duration: { type: Number, required: true },
-        controls: { type: Boolean, default: true },
-        transformations: {
-            width: { type: Number, default: VIDEO_DIMENSIONS.width },
-            height: { type: Number, default: VIDEO_DIMENSIONS.height },
-            quality: { type: Number, min: 1, max: 100 }
-        }
+  {
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    userEmail: { type: String, required: true },
+    videoUrl: { type: String, required: true },
+    thumbnailUrl: { type: String, required: true },
+    duration: { type: Number, required: true },
+    controls: { type: Boolean, default: true },
+    transformations: {
+      width: { type: Number, default: VIDEO_DIMENSIONS.width },
+      height: { type: Number, default: VIDEO_DIMENSIONS.height },
+      quality: { type: Number, min: 1, max: 100 },
     },
-    {
-        timestamps: true
-    }
+  },
+  {
+    timestamps: true,
+  }
 );
 
-const Video = models?.Video || model<IVideo>('Video', VideoSchema);
+const Video = models?.Video || model<IVideo>("Video", VideoSchema);
 
 export default Video;

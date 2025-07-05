@@ -2,13 +2,22 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { videosData } from "../../utils/data";
 import ImageUpload from "../components/ImageUpload";
+import VideoUpload from "../components/VideoUpload";
 import { IImage } from "@/models/Image";
+import { IVideo } from "@/models/Video";
 
 interface UploadImagePayload extends Omit<IImage, "imageUrl"> {
   imageUrl: string | null;
   file: File | null;
+}
+
+interface UploadVideoPayload extends Omit<IVideo, "videoUrl" | "thumbnailUrl"> {
+  videoUrl: string | null;
+  thumbnailUrl: string | null;
+  file: File | null;
+  uploadResponse?: any;
+  savedVideo?: any;
 }
 
 interface ImageData {
@@ -17,6 +26,15 @@ interface ImageData {
   thumbnail: string;
   date: string;
   aiFeatures: string[];
+}
+
+interface VideoData {
+  id: string;
+  title: string;
+  thumbnail: string;
+  date: string;
+  aiFeatures: string[];
+  duration: number;
 }
 
 const Dashboard = () => {
@@ -31,7 +49,9 @@ const Dashboard = () => {
   const [mounted, setMounted] = useState(false);
   const [themeResolved, setThemeResolved] = useState(false);
   const [imagesData, setImagesData] = useState<ImageData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [videosData, setVideosData] = useState<VideoData[]>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
+  const [loadingVideos, setLoadingVideos] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,11 +71,17 @@ const Dashboard = () => {
     setParticles(generatedParticles);
   }, []);
 
+  const formatDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
   useEffect(() => {
     const fetchImages = async () => {
       if (!session?.user?.email) return;
 
-      setLoading(true);
+      setLoadingImages(true);
       setError(null);
 
       try {
@@ -89,11 +115,57 @@ const Dashboard = () => {
       } catch (err) {
         console.error("Network or server error while fetching images:", err);
       } finally {
-        setLoading(false);
+        setLoadingImages(false);
       }
     };
 
     fetchImages();
+  }, [session?.user?.email]);
+
+  useEffect(() => {
+    const fetchVideos = async () => {
+      if (!session?.user?.email) return;
+
+      setLoadingVideos(true);
+      setError(null);
+
+      try {
+        const response = await fetch("/api/video", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch videos");
+        }
+
+        const fetchedVideos = (await response.json()) as IVideo[];
+
+        if (!Array.isArray(fetchedVideos) || fetchedVideos.length === 0) {
+          console.log("No videos found for user:", session.user.email);
+          setVideosData([]);
+          return;
+        }
+
+        const transformedVideos: VideoData[] = fetchedVideos.map((video) => ({
+          id: video._id?.toString() || "",
+          title: video.title,
+          thumbnail: video.thumbnailUrl,
+          date: (video as any).createdAt
+            ? new Date((video as any).createdAt).toLocaleDateString()
+            : "Unknown",
+          aiFeatures: ["AI Enhanced", "Auto Format", "Smart Compression"],
+          duration: video.duration,
+        }));
+
+        setVideosData(transformedVideos);
+      } catch (err) {
+        console.error("Network or server error while fetching videos:", err);
+      } finally {
+        setLoadingVideos(false);
+      }
+    };
+
+    fetchVideos();
   }, [session?.user?.email]);
 
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -152,10 +224,38 @@ const Dashboard = () => {
     }
   };
 
-  const handleVideoUploadSubmit = (data: any) => {
+  const handleVideoUploadSubmit = async (data: UploadVideoPayload) => {
     console.log("Video uploaded:", data);
     setShowVideoUpload(false);
+
+    if (session?.user?.email) {
+      try {
+        const response = await fetch("/api/video", {
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const fetchedVideos = (await response.json()) as IVideo[];
+          const transformedVideos: VideoData[] = fetchedVideos.map((video) => ({
+            id: video._id?.toString() || "",
+            title: video.title,
+            thumbnail: video.thumbnailUrl,
+            date: video.createdAt
+              ? new Date(video.createdAt).toLocaleDateString()
+              : "Unknown",
+            aiFeatures: ["AI Enhanced", "Auto Format", "Smart Compression"],
+            duration: video.duration,
+          }));
+          setVideosData(transformedVideos);
+        }
+      } catch (err) {
+        console.error("Error refreshing videos:", err);
+      }
+    }
   };
+
+  const isLoading = activeTab === "images" ? loadingImages : loadingVideos;
+  const currentData: (ImageData | VideoData)[] = activeTab === "images" ? imagesData : videosData;
 
   if (!mounted || !themeResolved) {
     return (
@@ -356,11 +456,11 @@ const Dashboard = () => {
           </div>
         )}
 
-        {loading && (
+        {isLoading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
             <span className="ml-3 text-gray-600 dark:text-gray-400">
-              Loading images...
+              Loading {activeTab}...
             </span>
           </div>
         )}
@@ -374,156 +474,151 @@ const Dashboard = () => {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
           >
-            {!loading &&
-              (activeTab === "images" ? imagesData : videosData).map(
-                (item, index) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.6 }}
-                    onMouseEnter={() =>
-                      setHoveredCard(
-                        typeof item.id === "string"
-                          ? parseInt(item.id)
-                          : item.id
-                      )
-                    }
-                    onMouseLeave={() => setHoveredCard(null)}
-                    className="group relative h-full"
-                  >
-                    <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 border border-gray-200 dark:border-white/10 hover:border-purple-500/50 h-full flex flex-col">
-                      <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {!isLoading &&
+              currentData.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.6 }}
+                  onMouseEnter={() =>
+                    setHoveredCard(
+                      typeof item.id === "string" ? parseInt(item.id) : item.id
+                    )
+                  }
+                  onMouseLeave={() => setHoveredCard(null)}
+                  className="group relative h-full"
+                >
+                  <div className="relative bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg dark:shadow-2xl hover:shadow-purple-500/25 transition-all duration-500 border border-gray-200 dark:border-white/10 hover:border-purple-500/50 h-full flex flex-col">
+                    <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                      <div className="relative h-40 sm:h-48 overflow-hidden flex-shrink-0">
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
+                    <div className="relative h-40 sm:h-48 overflow-hidden flex-shrink-0">
+                      <img
+                        src={item.thumbnail}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                        {activeTab === "videos" && "duration" in item && (
-                          <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm backdrop-blur-sm">
-                            {item.duration}s
-                          </div>
-                        )}
-
-                        {activeTab === "videos" && (
-                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
-                              <svg
-                                className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path d="M8 5v14l11-7z" />
-                              </svg>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="p-4 sm:p-6 flex flex-col flex-grow">
-                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-blue-400 transition-colors">
-                          {item.title}
-                        </h3>
-
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                          {item.date}
-                        </p>
-
-                        <div className="mb-4 flex-grow">
-                          <div className="flex flex-wrap gap-2 h-16 overflow-y-auto">
-                            {item.aiFeatures.map((feature, idx) => (
-                              <span
-                                key={idx}
-                                className="px-2 sm:px-3 py-1 bg-purple-100 dark:bg-blue-500/20 text-purple-700 dark:text-blue-300 rounded-full text-xs font-medium border border-purple-200 dark:border-blue-500/30 flex-shrink-0 h-fit"
-                              >
-                                {feature}
-                              </span>
-                            ))}
-                          </div>
+                      {activeTab === "videos" && "duration" in item && typeof item.duration === "number" && (
+                        <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 bg-black/70 text-white px-2 py-1 rounded text-xs sm:text-sm backdrop-blur-sm">
+                          {formatDuration(item.duration)}
                         </div>
+                      )}
 
-                        <div className="flex space-x-2 mt-auto">
-                          <button className="flex-1 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-medium hover:from-purple-700 hover:via-blue-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base">
-                            {activeTab === "images" ? "Edit" : "Edit Video"}
-                          </button>
-                          <button className="p-2 sm:p-3 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors backdrop-blur-sm border border-gray-200 dark:border-white/10">
+                      {activeTab === "videos" && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30">
                             <svg
-                              className="w-4 h-4 sm:w-5 sm:h-5"
-                              fill="none"
-                              stroke="currentColor"
+                              className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1"
+                              fill="currentColor"
                               viewBox="0 0 24 24"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-                              />
+                              <path d="M8 5v14l11-7z" />
                             </svg>
-                          </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 sm:p-6 flex flex-col flex-grow">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-blue-400 transition-colors">
+                        {item.title}
+                      </h3>
+
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                        {item.date}
+                      </p>
+
+                      <div className="mb-4 flex-grow">
+                        <div className="flex flex-wrap gap-2 h-16 overflow-y-auto">
+                          {item.aiFeatures.map((feature, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 sm:px-3 py-1 bg-purple-100 dark:bg-blue-500/20 text-purple-700 dark:text-blue-300 rounded-full text-xs font-medium border border-purple-200 dark:border-blue-500/30 flex-shrink-0 h-fit"
+                            >
+                              {feature}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                      <div className="flex space-x-2 mt-auto">
+                        <button className="flex-1 bg-gradient-to-r from-purple-600 via-blue-600 to-pink-600 text-white py-2 sm:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl font-medium hover:from-purple-700 hover:via-blue-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base">
+                          {activeTab === "images" ? "Edit" : "Edit Video"}
+                        </button>
+                        <button className="p-2 sm:p-3 bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 rounded-lg sm:rounded-xl hover:bg-gray-200 dark:hover:bg-white/20 transition-colors backdrop-blur-sm border border-gray-200 dark:border-white/10">
+                          <svg
+                            className="w-4 h-4 sm:w-5 sm:h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
-                    {hoveredCard ===
-                      (typeof item.id === "string"
-                        ? parseInt(item.id)
-                        : item.id) && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {[...Array(6)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            className="absolute w-1 h-1 bg-purple-400 dark:bg-blue-400 rounded-full"
-                            initial={{
-                              x: Math.random() * 300,
-                              y: Math.random() * 300,
-                              opacity: 0,
-                            }}
-                            animate={{
-                              y: -30,
-                              opacity: [0, 1, 0],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              delay: i * 0.1,
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                )
-              )}
+                    <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  </div>
+
+                  {hoveredCard ===
+                    (typeof item.id === "string"
+                      ? parseInt(item.id)
+                      : item.id) && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {[...Array(6)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-1 h-1 bg-purple-400 dark:bg-blue-400 rounded-full"
+                          initial={{
+                            x: Math.random() * 300,
+                            y: Math.random() * 300,
+                            opacity: 0,
+                          }}
+                          animate={{
+                            y: -30,
+                            opacity: [0, 1, 0],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: i * 0.1,
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
           </motion.div>
         </AnimatePresence>
 
-        {!loading &&
-          (activeTab === "images" ? imagesData : videosData).length === 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-12 sm:py-16"
-            >
-              <div className="text-6xl sm:text-8xl mb-4 sm:mb-6 opacity-50">
-                {activeTab === "images" ? "🖼️" : "🎬"}
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-                No {activeTab} yet
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 sm:mb-8 text-base sm:text-lg">
-                Start by uploading your first{" "}
-                {activeTab === "images" ? "image" : "video"}
-              </p>
-            </motion.div>
-          )}
+        {!isLoading && currentData.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12 sm:py-16"
+          >
+            <div className="text-6xl sm:text-8xl mb-4 sm:mb-6 opacity-50">
+              {activeTab === "images" ? "🖼️" : "🎬"}
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+              No {activeTab} yet
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 sm:mb-8 text-base sm:text-lg">
+              Start by uploading your first{" "}
+              {activeTab === "images" ? "image" : "video"}
+            </p>
+          </motion.div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -536,7 +631,12 @@ const Dashboard = () => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {showVideoUpload && <div>Video Upload Component Coming Soon</div>}
+        {showVideoUpload && (
+          <VideoUpload
+            onClose={handleVideoUploadClose}
+            onUpload={handleVideoUploadSubmit}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
